@@ -195,23 +195,21 @@ select 'compra', count(*) from compra
 union all
 select 'pagamento', count(*) from pagamento;
 
--- consulta 2: tabela com mais registros:
-select 'mercado' as tabela, count(*) as total from mercado
+-- consulta 2: Entidade mais cadastrada:
+select 'cliente' as tabela, count(*) as total from cliente
 union all
-select 'cliente', count(*) from cliente
-union all
-select 'fornecedor', count(*) from fornecedor
+select 'compra', count(*) from compra
 union all
 select 'produto', count(*) from produto
 union all
-select 'compra', count(*) from compra
+select 'fornecedor', count(*) from fornecedor
 order by total desc
 limit 1;
 
--- consulta 3: top 5 clientes que mais compraram:
-select c.nome, count(co.id_compra) as total_compras 
+-- consulta 3: Clientes mais ativos:
+select c.nome, count(co.id_compra) as total_compras
 from cliente c
-inner join compra co on c.id_cliente = co.id_cliente
+join compra co on c.id_cliente = co.id_cliente
 group by c.id_cliente
 order by total_compras desc
 limit 5;
@@ -246,10 +244,15 @@ group by c.id_cliente
 order by total_gasto desc
 limit 1;
 
+-- consulta 8: Pagamento por forma:
+select forma_pagamento, sum(valor_pago) as total_pago
+from pagamento
+group by forma_pagamento
+order by total_pago desc;
 
 -- Analise e Desempenho:
 
--- consulta 8: fornecedor com mais produtos cadastrados:
+-- consulta 9: fornecedor com mais produtos cadastrados:
 select f.nome_fornecedor, count(p.id_produto) as total_produtos
 from fornecedor f
 inner join produto p on f.id_fornecedor = p.id_fornecedor
@@ -257,10 +260,22 @@ group by f.id_fornecedor
 order by total_produtos desc
 limit 1;
 
+-- consulta 10: Total de produtos por mercado:
+select m.nome, count(p.id_produto) as total_produtos
+from mercado m
+join produto p on m.id_mercado = p.id_mercado
+group by m.id_mercado
+order by total_produtos desc;
+
+-- consulta 11: relatório geral com totais e médias de compras
+select count(*) as total_compras, 
+ sum(valor_total) as soma_total, 
+ avg(valor_total) as media_por_compra
+from compra;
 
 -- JOINs Multiplos e Relatorios:
 
--- consulta 9: informações completas de cada compra (cliente + compra + pagamento)
+-- consulta 12: informações completas de cada compra (cliente + compra + pagamento)
 select 
     co.id_compra,
     c.nome as cliente,
@@ -275,8 +290,14 @@ inner join cliente c
 left join pagamento pa
     on co.id_compra = pa.id_compra;
 
--- consulta 10: relatório geral com totais e médias de compras
-select count(*) as total_compras, 
- sum(valor_total) as soma_total, 
- avg(valor_total) as media_por_compra
-from compra;
+-- Consulta 13: Dados combinados:
+select 
+    c.nome as cliente,
+    pr.nome_produto as produto,
+    co.data_compra,
+    co.valor_total
+from cliente c
+join compra co on c.id_cliente = co.id_cliente
+join produto pr on pr.id_mercado = co.id_compra; 
+
+
